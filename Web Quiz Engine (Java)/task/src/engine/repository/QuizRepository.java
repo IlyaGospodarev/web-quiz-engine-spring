@@ -18,8 +18,10 @@ public class QuizRepository {
 
     public QuizResponse addQuiz(Quiz quiz) {
 
-        if ((quiz.getTitle().isEmpty() || quiz.getTitle() == null) ||
-                (quiz.getText().isEmpty() || quiz.getText() == null) ||
+        if ((quiz.getTitle()
+                .isEmpty() || quiz.getTitle() == null) ||
+                (quiz.getText()
+                        .isEmpty() || quiz.getText() == null) ||
                 quiz.getOptions().length < 2) {
             throw new InvalidValidationJsonException(HttpStatus.BAD_REQUEST);
         }
@@ -47,21 +49,21 @@ public class QuizRepository {
     }
 
     public AnswerResponse solveQuiz(int id, Integer[] answer) {
-        AnswerResponse answerResponse = new AnswerResponse();
+        AnswerResponse answerTrue = new AnswerResponse(true,
+                                                       "Congratulations, you're right!");
+        AnswerResponse answerFalse = new AnswerResponse(false,
+                                                        "Wrong answer! Please, try again.");
 
-        Integer[] zero = new Integer[]{0};
+        Integer[] zero = {};
 
         if (quizzes.get(id) == null) {
             throw new InvalidIDException(HttpStatus.NOT_FOUND);
-        } else if (quizzes.get(id).getAnswer() == null && !(Arrays.equals(answer, zero))
-                || Arrays.equals(quizzes.get(id).getAnswer(), answer)) {
-            answerResponse.setSuccess(true);
-            answerResponse.setFeedback("Congratulations, you're right!");
-        } else {
-            answerResponse.setSuccess(false);
-            answerResponse.setFeedback("Wrong answer! Please, try again.");
         }
 
-        return answerResponse;
+        if (quizzes.get(id).getAnswer() == null && Arrays.equals(answer, zero)
+                || Arrays.equals(quizzes.get(id).getAnswer(), answer)) {
+
+            return answerTrue;
+        } else return answerFalse;
     }
 }

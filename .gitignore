@@ -1,0 +1,12 @@
+# Project exclude paths
+/.gradle/
+/Web Quiz Engine (Java)/task/build/
+/Web Quiz Engine (Java)/task/out/
+/Web Quiz Engine (Java)/task/out/production/classes/
+/Web Quiz Engine (Java)/Advanced queries
+/Web Quiz Engine (Java)/Lots of quizzes
+/Web Quiz Engine (Java)/Making quizzes more interesting
+/Web Quiz Engine (Java)/Moving quizzes to DB
+/Web Quiz Engine (Java)/Solving a simple quiz
+/Web Quiz Engine (Java)/User authorization
+.idea

@@ -1,12 +1,11 @@
 package engine.service;
 
-import engine.model.request.Quiz;
+import engine.entity.Quiz;
+import engine.model.request.AnswerRequest;
 import engine.model.response.AnswerResponse;
-import engine.model.response.QuizResponse;
+import engine.model.request.QuizRequest;
 import engine.model.response.exceptions.InvalidIDException;
-import engine.model.response.exceptions.InvalidValidationJsonException;
 import engine.repository.QuizRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -15,120 +14,47 @@ import java.util.List;
 
 @Service
 public class QuizService {
-    @Autowired
-    private QuizRepository quizRepository;
-
-    public QuizService() {}
+    private final QuizRepository quizRepository;
 
     public QuizService(QuizRepository quizRepository) {
         this.quizRepository = quizRepository;
     }
 
-    public QuizResponse addQuiz(Quiz quiz) {
+    public Quiz addQuiz(QuizRequest quizRequest) {
 
-        if ((quiz.getTitle().isEmpty() || quiz.getTitle() == null) ||
-                (quiz.getText().isEmpty() || quiz.getText() == null) ||
-                quiz.getOptions().length < 2) {
-            throw new InvalidValidationJsonException(HttpStatus.BAD_REQUEST);
-        }
-
-        QuizResponse quizResponse = new QuizResponse(quiz.getId(),
-                                                     quiz.getTitle(),
-                                                     quiz.getText(),
-                                                     quiz.getOptions());
+        Quiz quiz = new Quiz(quizRequest.title(),
+                             quizRequest.text(),
+                             quizRequest.options(),
+                             quizRequest.answer());
 
         quizRepository.save(quiz);
 
-        return quizResponse;
+        return quiz;
     }
 
     public Quiz getQuizById(long id) {
-
-        if (quizRepository.findById(id) == null) {
-            throw new InvalidIDException(HttpStatus.NOT_FOUND);
-        }
-
-        return quizRepository.findById(id);
+        return quizRepository.findById(id)
+                .orElseThrow(() -> new InvalidIDException(HttpStatus.NOT_FOUND));
     }
 
     public List<Quiz> getAllQuizzes() {
         return quizRepository.findAll();
     }
 
-    public AnswerResponse answerToQuiz(int id, Integer[] answer) {
+    public AnswerResponse answerToQuiz(long id, AnswerRequest answerRequest) {
 
         AnswerResponse answerTrue = new AnswerResponse(true,
                                                        "Congratulations, you're right!");
         AnswerResponse answerFalse = new AnswerResponse(false,
                                                         "Wrong answer! Please, try again.");
 
-        Integer[] emptyArray = {};
+        Quiz quiz = quizRepository.findById(id)
+                        .orElseThrow(() -> new InvalidIDException(HttpStatus.NOT_FOUND));
 
-        Quiz quiz = quizRepository.findById(id);
-
-        if (quiz == null) {
-            throw new InvalidIDException(HttpStatus.NOT_FOUND);
-        }
-
-        if (quiz.getAnswer() == null && Arrays.equals(answer, emptyArray)
-                || Arrays.equals(quiz.getAnswer(), answer)) {
+        if (Arrays.equals(answerRequest.answer(), quiz.getAnswer())) {
             return answerTrue;
-        } else return answerFalse;
+        } else {
+            return answerFalse;
+        }
     }
 }
-
-
-
-//    private Map<Integer, Quiz> quizzes = new HashMap<>();
-//    private int id = 1;
-//
-//    public QuizResponse addQuiz(Quiz quiz) {
-//
-//        if ((quiz.getTitle()
-//                .isEmpty() || quiz.getTitle() == null) ||
-//                (quiz.getText()
-//                        .isEmpty() || quiz.getText() == null) ||
-//                quiz.getOptions().length < 2) {
-//            throw new InvalidValidationJsonException(HttpStatus.BAD_REQUEST);
-//        }
-//
-//        quiz.setId(id);
-//        QuizResponse quizResponse = new QuizResponse(quiz.getId(),
-//                                                     quiz.getTitle(),
-//                                                     quiz.getText(),
-//                                                     quiz.getOptions());
-//
-//        quizzes.put(id, quiz);
-//        id++;
-//
-//        return quizResponse;
-//    }
-//
-//    public Quiz findQuizById(int id) {
-//        if (quizzes.get(id) == null) {
-//            throw new InvalidIDException(HttpStatus.NOT_FOUND);
-//        } else return quizzes.get(id);
-//    }
-//
-//    public Collection<Quiz> findAllQuiz() {
-//        return quizzes.values();
-//    }
-//
-//    public AnswerResponse solveQuiz(int id, Integer[] answer) {
-//        AnswerResponse answerTrue = new AnswerResponse(true,
-//                                                       "Congratulations, you're right!");
-//        AnswerResponse answerFalse = new AnswerResponse(false,
-//                                                        "Wrong answer! Please, try again.");
-//
-//        Integer[] zero = {};
-//
-//        if (quizzes.get(id) == null) {
-//            throw new InvalidIDException(HttpStatus.NOT_FOUND);
-//        }
-//
-//        if (quizzes.get(id).getAnswer() == null && Arrays.equals(answer, zero)
-//                || Arrays.equals(quizzes.get(id).getAnswer(), answer)) {
-//
-//            return answerTrue;
-//        } else return answerFalse;
-//    }

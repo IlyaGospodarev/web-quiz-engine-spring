@@ -1,26 +1,31 @@
-package engine.model.response;
+package engine.entity;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 
 @Entity
-public class QuizResponse {
+public class Quiz {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
-    @Column
+
     private String title;
-    @Column
+
     private String text;
-    @Column
+
     private String[] options;
 
-    public QuizResponse() {
-    }
+    @JsonIgnore
+    private Integer[] answer;
 
-    public QuizResponse(long id, String title, String text, String[] options) {
-        this.id = id;
+    public Quiz() {}
+
+    public Quiz(String title, String text, String[] options, Integer[] answer) {
         this.title = title;
         this.text = text;
         this.options = options;
+        this.answer = answer == null ? new Integer[]{} : answer;
     }
 
     public long getId() {
@@ -54,4 +59,13 @@ public class QuizResponse {
     public void setOptions(String[] options) {
         this.options = options;
     }
+
+    public Integer[] getAnswer() {
+        return answer;
+    }
+
+    public void setAnswer(Integer[] answer) {
+        this.answer = answer;
+    }
+
 }

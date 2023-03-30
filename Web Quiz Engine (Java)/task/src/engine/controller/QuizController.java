@@ -1,11 +1,10 @@
 package engine.controller;
 
-import engine.model.request.Answer;
-import engine.model.request.Quiz;
+import engine.model.request.AnswerRequest;
+import engine.entity.Quiz;
 import engine.model.response.AnswerResponse;
-import engine.model.response.QuizResponse;
+import engine.model.request.QuizRequest;
 import engine.service.QuizService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,35 +12,33 @@ import javax.validation.Valid;
 import java.util.Collection;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/quizzes")
 public class QuizController {
-    @Autowired
-    private QuizService quizService;
 
-    public QuizController() {}
+    private final QuizService quizService;
 
     public QuizController(QuizService quizService) {
         this.quizService = quizService;
     }
 
-    @PostMapping("/quizzes")
-    public ResponseEntity<QuizResponse> addQuiz(@RequestBody @Valid Quiz quiz) {
-        return ResponseEntity.ok(quizService.addQuiz(quiz));
+    @PostMapping()
+    public ResponseEntity<Quiz> addQuiz(@RequestBody @Valid QuizRequest quizRequest) {
+        return ResponseEntity.ok(quizService.addQuiz(quizRequest));
     }
 
-    @GetMapping("/quizzes/{id}")
-    public ResponseEntity<Quiz> getQuizById(@PathVariable int id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<Quiz> getQuizById(@PathVariable long id) {
         return ResponseEntity.ok(quizService.getQuizById(id));
     }
 
-    @GetMapping("/quizzes")
+    @GetMapping()
     public ResponseEntity<Collection<Quiz>> getAllQuizzes() {
         return ResponseEntity.ok(quizService.getAllQuizzes());
     }
 
-    @PostMapping("/quizzes/{id}/solve")
-    public ResponseEntity<AnswerResponse> answerToQuiz(@PathVariable int id,
-                                                       @RequestBody Answer answer) {
-        return ResponseEntity.ok(quizService.answerToQuiz(id, answer.getAnswer()));
+    @PostMapping("/{id}/solve")
+    public ResponseEntity<AnswerResponse> answerToQuiz(@PathVariable long id,
+                                                       @RequestBody AnswerRequest answerRequest) {
+        return ResponseEntity.ok(quizService.answerToQuiz(id, answerRequest));
     }
 }

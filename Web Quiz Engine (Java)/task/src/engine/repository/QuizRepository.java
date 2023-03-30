@@ -1,13 +1,8 @@
 package engine.repository;
 
-import engine.model.request.Quiz;
-import org.springframework.data.repository.CrudRepository;
+import engine.entity.Quiz;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 @Repository
-public interface QuizRepository extends CrudRepository<Quiz, Long> {
-    Quiz findById(long id);
-    List<Quiz> findAll();
-}
+public interface QuizRepository extends JpaRepository<Quiz, Long> {}

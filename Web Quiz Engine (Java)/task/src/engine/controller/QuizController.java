@@ -5,6 +5,7 @@ import engine.model.request.Quiz;
 import engine.model.response.AnswerResponse;
 import engine.model.response.QuizResponse;
 import engine.service.QuizService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,8 +15,10 @@ import java.util.Collection;
 @RestController
 @RequestMapping("/api")
 public class QuizController {
-
+    @Autowired
     private QuizService quizService;
+
+    public QuizController() {}
 
     public QuizController(QuizService quizService) {
         this.quizService = quizService;

@@ -1,31 +1,33 @@
 package engine.model.response;
 
-import org.springframework.stereotype.Component;
+import javax.persistence.*;
 
-@Component
+@Entity
 public class QuizResponse {
-    private int id;
-
+    @Id
+    private long id;
+    @Column
     private String title;
-
+    @Column
     private String text;
-
+    @Column
     private String[] options;
 
-    public QuizResponse() {}
+    public QuizResponse() {
+    }
 
-    public QuizResponse(int id, String title, String text, String[] options) {
+    public QuizResponse(long id, String title, String text, String[] options) {
         this.id = id;
         this.title = title;
         this.text = text;
         this.options = options;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 

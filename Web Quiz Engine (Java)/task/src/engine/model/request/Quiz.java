@@ -1,23 +1,25 @@
 package engine.model.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.springframework.stereotype.Component;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.Arrays;
 
-@Component
+@Entity
 public class Quiz {
-    private int id;
-
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
     @NotEmpty
     @NotBlank
     @NotNull
     private String title;
-
     @NotEmpty
     @NotBlank
     @NotNull
@@ -31,7 +33,7 @@ public class Quiz {
     public Quiz() {
     }
 
-    public Quiz(int id, String title, String text, String[] options, Integer[] answer) {
+    public Quiz(long id, String title, String text, String[] options, Integer[] answer) {
         this.id = id;
         this.title = title;
         this.text = text;
@@ -39,11 +41,11 @@ public class Quiz {
         this.answer = answer == null ? new Integer[]{} : answer;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -86,17 +88,14 @@ public class Quiz {
 
         if (id != quiz.id) return false;
         if (!title.equals(quiz.title)) return false;
-        if (!text.equals(quiz.text)) return false;
-        // Probably incorrect - comparing Object[] arrays with Arrays.equals
-        return Arrays.equals(answer, quiz.answer);
+        return text.equals(quiz.text);
     }
 
     @Override
     public int hashCode() {
-        int result = id;
+        int result = (int) (id ^ (id >>> 32));
         result = 31 * result + title.hashCode();
         result = 31 * result + text.hashCode();
-        result = 31 * result + Arrays.hashCode(answer);
         return result;
     }
 }

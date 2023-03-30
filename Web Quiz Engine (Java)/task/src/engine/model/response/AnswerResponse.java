@@ -1,9 +1,7 @@
 package engine.model.response;
 
-import org.springframework.stereotype.Component;
-
-@Component
 public class AnswerResponse {
+
     private boolean success;
 
     private String feedback;

@@ -1,12 +1,16 @@
 package engine.service;
 
 import engine.entity.Quiz;
+import engine.entity.User;
 import engine.model.request.AnswerRequest;
 import engine.model.response.AnswerResponse;
 import engine.model.request.QuizRequest;
 import engine.model.response.exceptions.InvalidIDException;
+import engine.model.response.exceptions.InvalidUserException;
+import engine.model.response.exceptions.NotPermittedException;
 import engine.repository.QuizRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -27,6 +31,8 @@ public class QuizService {
                              quizRequest.options(),
                              quizRequest.answer());
 
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        quiz.setUser(user);
         quizRepository.save(quiz);
 
         return quiz;
@@ -56,5 +62,20 @@ public class QuizService {
         } else {
             return answerFalse;
         }
+    }
+
+    public void deleteQuiz(long id) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Quiz quiz = quizRepository.findById(id)
+                .orElseThrow(() -> new InvalidIDException(HttpStatus.NOT_FOUND));
+
+        if (user == null) {
+            throw new InvalidUserException(HttpStatus.NOT_FOUND);
+        }
+        if (quiz.getUser().getId() != user.getId()) {
+            throw new NotPermittedException(HttpStatus.FORBIDDEN);
+        }
+
+        quizRepository.delete(quiz);
     }
 }

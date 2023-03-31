@@ -7,17 +7,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final BCryptPasswordEncoder encoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder encoder) {
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
+        this.encoder = encoder;
     }
 
     @Override
@@ -33,7 +34,7 @@ public class UserService implements UserDetailsService {
             throw new DuplicateEmailException(HttpStatus.BAD_REQUEST);
         }
 
-        String encodePassword = passwordEncoder.encode(password);
+        String encodePassword = encoder.encode(password);
         User user = new User(email, encodePassword);
 
         userRepository.save(user);

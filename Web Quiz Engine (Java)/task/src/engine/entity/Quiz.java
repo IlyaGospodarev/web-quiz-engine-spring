@@ -19,6 +19,11 @@ public class Quiz {
     @JsonIgnore
     private Integer[] answer;
 
+    @ManyToOne
+    @JoinColumn(name = "UserId")
+    @JsonIgnore
+    private User user;
+
     public Quiz() {}
 
     public Quiz(String title, String text, String[] options, Integer[] answer) {
@@ -68,4 +73,11 @@ public class Quiz {
         this.answer = answer;
     }
 
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 }

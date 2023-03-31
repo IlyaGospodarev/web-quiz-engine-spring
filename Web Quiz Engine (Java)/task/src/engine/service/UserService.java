@@ -8,7 +8,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,20 +21,20 @@ public class UserService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return userRepository.findUserByEmail(email)
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findUserByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException(
-                        String.format("Not found: %s", email)));
+                        String.format("No user %s found", username)));
     }
 
-    public void registerNewUser(String email, String password) {
+    public void registerNewUser(String username, String password) {
 
-        if (userRepository.findUserByEmail(email).isPresent()) {
+        if (userRepository.findUserByUsername(username).isPresent()) {
             throw new DuplicateEmailException(HttpStatus.BAD_REQUEST);
         }
 
         String encodePassword = encoder.encode(password);
-        User user = new User(email, encodePassword);
+        User user = new User(username, encodePassword);
 
         userRepository.save(user);
     }

@@ -19,21 +19,14 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @NotNull
-    @NotBlank(message = "Email is required")
-    @Email(regexp = ".+@.+\\..+")
-    private String email;
-
-    @NotNull
-    @NotBlank(message = "Password is required")
-    @Size(min = 5)
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String username;
+    
     private String password;
 
     public User() { }
 
-    public User(String email, String password) {
-        this.email = email;
+    public User(String username, String password) {
+        this.username = username;
         this.password = password;
     }
 
@@ -47,11 +40,11 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        return username;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     @Override

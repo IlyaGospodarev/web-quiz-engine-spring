@@ -1,6 +1,7 @@
 package engine.controller;
 
 import engine.entity.User;
+import engine.model.request.UserRequest;
 import engine.service.UserService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,7 +21,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public void registerUser(@RequestBody @Valid User user) {
-        userService.registerNewUser(user.getUsername(), user.getPassword());
+    public void registerUser(@RequestBody @Valid UserRequest userRequest) {
+        userService.registerNewUser(userRequest.email(), userRequest.password());
     }
 }

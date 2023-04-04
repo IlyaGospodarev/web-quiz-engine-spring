@@ -1,43 +1,48 @@
 package engine.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
+@Table(name = "quiz")
 public class Quiz {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "quiz_seq")
+    private int id;
 
+    @Column(name = "title", nullable = false)
     private String title;
 
+    @Column(name = "text", nullable = false)
     private String text;
 
-    private String[] options;
+    @ElementCollection
+    @Size(min = 2)
+    @NotNull
+    private List<@NotBlank(message = "option must be non empty string") String> options;
 
-    @JsonIgnore
-    private Integer[] answer;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @ElementCollection
+    private Set<Integer> answer = new HashSet<>();
 
-    @ManyToOne
-    @JoinColumn(name = "UserId")
-    @JsonIgnore
-    private User user;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String ownerEmail;
 
     public Quiz() {}
 
-    public Quiz(String title, String text, String[] options, Integer[] answer) {
-        this.title = title;
-        this.text = text;
-        this.options = options;
-        this.answer = answer == null ? new Integer[]{} : answer;
-    }
-
-    public long getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -57,27 +62,27 @@ public class Quiz {
         this.text = text;
     }
 
-    public String[] getOptions() {
+    public List<String> getOptions() {
         return options;
     }
 
-    public void setOptions(String[] options) {
+    public void setOptions(List<String> options) {
         this.options = options;
     }
 
-    public Integer[] getAnswer() {
+    public Set<Integer> getAnswer() {
         return answer;
     }
 
-    public void setAnswer(Integer[] answer) {
+    public void setAnswer(Set<Integer> answer) {
         this.answer = answer;
     }
 
-    public User getUser() {
-        return user;
+    public String getOwnerEmail() {
+        return ownerEmail;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setOwnerEmail(String ownerEmail) {
+        this.ownerEmail = ownerEmail;
     }
 }

@@ -1,9 +1,9 @@
 package engine.service;
 
 import engine.entity.User;
-import engine.model.response.exceptions.DuplicateEmailException;
+import engine.exceptions.InvalidEmailException;
 import engine.repository.UserRepository;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -12,30 +12,35 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserService implements UserDetailsService {
-    private final UserRepository userRepository;
-    private final BCryptPasswordEncoder encoder;
+    @Autowired
+    UserRepository userRepository;
 
-    public UserService(UserRepository userRepository, BCryptPasswordEncoder encoder) {
-        this.userRepository = userRepository;
-        this.encoder = encoder;
-    }
+    @Autowired
+    BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return userRepository.findUserByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException(
-                        String.format("No user %s found", username)));
-    }
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email);
 
-    public void registerNewUser(String username, String password) {
-
-        if (userRepository.findUserByUsername(username).isPresent()) {
-            throw new DuplicateEmailException(HttpStatus.BAD_REQUEST);
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found");
         }
 
-        String encodePassword = encoder.encode(password);
-        User user = new User(username, encodePassword);
+        return user;
+    }
 
-        userRepository.save(user);
+    public void saveUser(String email, String password) {
+        User user = userRepository.findByEmail(email);
+
+        if (user == null) {
+            User userNew = new User();
+            userNew.setEmail(email);
+            userNew.setPassword(bCryptPasswordEncoder.encode(password));
+
+            userRepository.save(userNew);
+        } else {
+            throw new InvalidEmailException();
+        }
     }
 }
+

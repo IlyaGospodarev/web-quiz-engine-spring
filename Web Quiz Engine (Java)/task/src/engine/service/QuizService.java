@@ -1,81 +1,116 @@
 package engine.service;
 
+import engine.dto.ResponseDto;
+import engine.entity.Completion;
 import engine.entity.Quiz;
 import engine.entity.User;
-import engine.model.request.AnswerRequest;
-import engine.model.response.AnswerResponse;
-import engine.model.request.QuizRequest;
-import engine.model.response.exceptions.InvalidIDException;
-import engine.model.response.exceptions.InvalidUserException;
-import engine.model.response.exceptions.NotPermittedException;
+import engine.exceptions.InvalidAccessException;
+import engine.exceptions.InvalidAnswerException;
+import engine.exceptions.QuizNotFoundException;
+import engine.repository.CompletionRepository;
 import engine.repository.QuizRepository;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class QuizService {
     private final QuizRepository quizRepository;
+    private final CompletionRepository completionRepository;
 
-    public QuizService(QuizRepository quizRepository) {
+    public QuizService(QuizRepository quizRepository, CompletionRepository completionRepository) {
         this.quizRepository = quizRepository;
+        this.completionRepository = completionRepository;
     }
 
-    public Quiz addQuiz(QuizRequest quizRequest) {
+    public Quiz addQuiz(Quiz quiz) {
+        User user = getUser();
+        quiz.setOwnerEmail(user.getEmail());
 
-        Quiz quiz = new Quiz(quizRequest.title(),
-                             quizRequest.text(),
-                             quizRequest.options(),
-                             quizRequest.answer());
+        if(quiz.getOptions() == null) {
+            throw new InvalidAnswerException();
+        } else {
 
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        quiz.setUser(user);
+            int numberOfOptionsInQuiz = quiz.getOptions().size();
+
+            for (Integer eachAnswer : quiz.getAnswer()) {
+                if (eachAnswer < 0 || eachAnswer > numberOfOptionsInQuiz) {
+                    throw new InvalidAnswerException();
+                }
+            }
+        }
+
         quizRepository.save(quiz);
 
         return quiz;
     }
 
-    public Quiz getQuizById(long id) {
-        return quizRepository.findById(id)
-                .orElseThrow(() -> new InvalidIDException(HttpStatus.NOT_FOUND));
+    public Page<Quiz> getAllQuizzes(int page) {
+        String properties = "id";
+        Pageable paging = getPageable(page, properties);
+
+        return quizRepository.findAll(paging);
     }
 
-    public List<Quiz> getAllQuizzes() {
-        return quizRepository.findAll();
+    public Quiz getQuizById(int id) {
+        return getById(id);
     }
 
-    public AnswerResponse answerToQuiz(long id, AnswerRequest answerRequest) {
+    public ResponseDto solveQuizById(int id, Set<Integer> answer) {
+        Quiz quiz = getById(id);
 
-        AnswerResponse answerTrue = new AnswerResponse(true,
-                                                       "Congratulations, you're right!");
-        AnswerResponse answerFalse = new AnswerResponse(false,
-                                                        "Wrong answer! Please, try again.");
+        if (Arrays.equals(quiz.getAnswer()
+                                  .toArray(), answer.toArray())) {
+            User user = getUser();
+            completionRepository.save(new Completion(user.getEmail(), id, new Date()));
 
-        Quiz quiz = quizRepository.findById(id)
-                        .orElseThrow(() -> new InvalidIDException(HttpStatus.NOT_FOUND));
-
-        if (Arrays.equals(answerRequest.answer(), quiz.getAnswer())) {
-            return answerTrue;
+            return new ResponseDto(true, "Congratulations, you're right!");
         } else {
-            return answerFalse;
+            return new ResponseDto(false, "Wrong answer! Please, try again.");
         }
     }
 
-    public void deleteQuiz(long id) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Quiz quiz = quizRepository.findById(id)
-                .orElseThrow(() -> new InvalidIDException(HttpStatus.NOT_FOUND));
+    public void deleteQuizById(int id) {
+        Quiz quiz = getById(id);
 
-        if (user == null) {
-            throw new InvalidUserException(HttpStatus.NOT_FOUND);
-        }
-        if (quiz.getUser().getId() != user.getId()) {
-            throw new NotPermittedException(HttpStatus.FORBIDDEN);
+        User user = getUser();
+
+        if (!quiz.getOwnerEmail()
+                .equals(user.getEmail())) {
+            throw  new InvalidAccessException();
         }
 
-        quizRepository.delete(quiz);
+        quizRepository.deleteById(id);
+    }
+
+    public Page<Completion> getCompletedQuizzes(int page) {
+        String properties = "completedAt";
+        Pageable paging = getPageable(page, properties);
+
+        User user = getUser();
+
+        return completionRepository.findAllByUserEmail(user.getEmail(), paging);
+    }
+
+    private Quiz getById(int id) {
+        return quizRepository.findById(id)
+                .orElseThrow(QuizNotFoundException::new);
+    }
+
+    private static Pageable getPageable(int page, String properties) {
+        int pageSize = 10;
+        return PageRequest.of(page, pageSize, Sort.by(properties)
+                .descending());
+    }
+
+    private static User getUser() {
+        return (User) SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getPrincipal();
     }
 }

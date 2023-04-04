@@ -1,27 +1,26 @@
 package engine.controller;
 
+import engine.dto.UserDto;
 import engine.entity.User;
-import engine.model.request.UserRequest;
 import engine.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 
-@RestController
-@RequestMapping("/api")
+@Controller
+@RequestMapping("/api/register")
 public class UserController {
+    @Autowired
+    UserService userService;
 
-    private final UserService userService;
-
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
-
-    @PostMapping("/register")
-    public void registerUser(@RequestBody @Valid UserRequest userRequest) {
-        userService.registerNewUser(userRequest.email(), userRequest.password());
+    @PostMapping
+    public ResponseEntity<User> addUser(@Valid @RequestBody UserDto userDto) {
+        userService.saveUser(userDto.getEmail(), userDto.getPassword());
+        return ResponseEntity.ok().build();
     }
 }
